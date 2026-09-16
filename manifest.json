@@ -1,9 +1,9 @@
 {
-  "domain": "wol_listener",
+  "domain": "ha_wol_listener",
   "name": "Wake-on-LAN Listener",
   "version": "1.1.1",
-  "documentation": "https://example.invalid/wol_listener",
-  "issue_tracker": "https://example.invalid/wol_listener/issues",
+  "documentation": "https://github.com/Skaldhor/ha_wol_listener",
+  "issue_tracker": "https://github.com/Skaldhor/ha_wol_listener/issues",
   "codeowners": [],
   "config_flow": true,
   "iot_class": "local_push",
