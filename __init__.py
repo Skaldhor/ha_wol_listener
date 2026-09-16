@@ -39,11 +39,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await listener.async_start()
     except OSError as err:
-        _LOGGER.debug(
-            "Could not start WOL listener on interface %s: %s", interface, err
+        _LOGGER.error(
+            "Could not start WOL listener on interface '%s': %s. "
+            "Ensure host networking is enabled and the container has CAP_NET_RAW.",
+            interface,
+            err,
         )
         raise ConfigEntryNotReady(
-            f"Could not open raw socket on interface '{interface}': {err}"
+            f"Could not open raw socket on interface '{interface}': {err}. "
+            "Ensure host networking is enabled and CAP_NET_RAW is available."
         ) from err
 
     hass.data[DOMAIN][entry.entry_id] = listener

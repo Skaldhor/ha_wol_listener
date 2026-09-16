@@ -1,5 +1,8 @@
 {
   "config": {
+    "error": {
+      "invalid_devices": "Device mapping contains invalid entries. Each line must be MAC=Name and the MAC must be exactly six bytes in the form AA:BB:CC:DD:EE:FF or AA-BB-CC-DD-EE-FF."
+    },
     "step": {
       "user": {
         "title": "Wake-on-LAN Listener",

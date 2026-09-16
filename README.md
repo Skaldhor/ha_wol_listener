@@ -54,7 +54,7 @@ AA:BB:CC:DD:EE:FF=Wohnzimmer-PC
 
 MAC addresses may also use `-` instead of `:`.
 
-The mapping is normalized to uppercase.
+The mapping is normalized to uppercase and invalid entries are rejected.
 
 ## Event
 
