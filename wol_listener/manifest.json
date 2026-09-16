@@ -1,0 +1,11 @@
+{
+  "domain": "wol_listener",
+  "name": "Wake-on-LAN Listener",
+  "version": "1.0.0",
+  "documentation": "https://example.invalid/wol_listener",
+  "issue_tracker": "https://example.invalid/wol_listener/issues",
+  "codeowners": [],
+  "config_flow": true,
+  "iot_class": "local_push",
+  "requirements": []
+}

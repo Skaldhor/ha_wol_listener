@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wake-on-LAN Listener",
+        "description": "Lauscht auf dem angegebenen Linux-Netzwerkinterface nach WOL Magic Packets.",
+        "data": {
+          "interface": "Netzwerkinterface"
+        }
+      }
+    }
+  }
+}
