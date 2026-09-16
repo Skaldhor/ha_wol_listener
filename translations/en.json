@@ -3,9 +3,10 @@
     "step": {
       "user": {
         "title": "Wake-on-LAN Listener",
-        "description": "Listen on the specified Linux network interface for WOL magic packets.",
+        "description": "Listen for WOL magic packets. Device mapping: one device per line using MAC=Name.",
         "data": {
-          "interface": "Network interface"
+          "interface": "Network interface",
+          "devices": "Device mapping"
         }
       }
     }

@@ -1,58 +1,72 @@
-# Wake-on-LAN Listener for Home Assistant
+# Wake-on-LAN Listener – Home Assistant
 
-Custom Home Assistant integration that listens for Wake-on-LAN magic packets
-directly on a Linux network interface using `AF_PACKET`.
+Custom integration that listens for IPv4/UDP Wake-on-LAN magic packets using
+Linux `AF_PACKET`, fires a `wol_packet` event and exposes a sensor for the
+last packet.
 
-## Requirements
+## Docker requirement
 
-- Home Assistant Container on Linux
-- `network_mode: host`
-- Docker capability `NET_RAW`
-- An Ethernet interface visible inside the HA container
-- The WOL traffic must reach that interface
-
-## Docker Compose
+Home Assistant must use host networking and have `CAP_NET_RAW`:
 
 ```yaml
 services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
-    container_name: homeassistant
     network_mode: host
     cap_add:
       - NET_RAW
     volumes:
       - /PATH/TO/CONFIG:/config
-      - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
 ```
 
-Do not use `privileged: true` just for this integration.
-
 ## Installation
 
-Copy the `wol_listener` directory to:
+Copy `wol_listener` to:
 
 `/config/custom_components/wol_listener/`
 
-Restart Home Assistant.
-
-Then go to:
+Restart Home Assistant and add:
 
 Settings -> Devices & services -> Add integration -> Wake-on-LAN Listener
 
-Use `auto` or the interface name, for example `eth0`.
+## Configuration
 
-## Events
+Interface:
 
-For every detected magic packet the integration fires:
+```text
+auto
+```
+
+or e.g.:
+
+```text
+eth0
+```
+
+Device mapping uses one line per device:
+
+```text
+AA:BB:CC:DD:EE:FF=Wohnzimmer-PC
+11:22:33:44:55:66=NAS
+77:88:99:AA:BB:CC=Media-PC
+```
+
+MAC addresses may also use `-` instead of `:`.
+
+The mapping is normalized to uppercase.
+
+## Event
+
+Each detected WOL packet fires:
 
 `wol_packet`
 
-Example event data:
+Example:
 
 ```yaml
 target_mac: "AA:BB:CC:DD:EE:FF"
+device_name: "Wohnzimmer-PC"
 source_mac: "11:22:33:44:55:66"
 source_ip: "192.168.1.20"
 destination_ip: "192.168.1.255"
@@ -61,42 +75,16 @@ interface: "eth0"
 timestamp: "2026-08-09T21:18:00+00:00"
 ```
 
-## Logbook automation
-
-The integration deliberately fires a normal Home Assistant event instead of
-writing directly to the recorder. This keeps the listener independent from
-the recorder/logbook implementation.
-
-Add this automation:
-
-```yaml
-alias: WOL im Logbuch protokollieren
-description: ""
-triggers:
-  - trigger: event
-    event_type: wol_packet
-actions:
-  - action: logbook.log
-    data:
-      name: Wake-on-LAN
-      message: >
-        Ziel {{ trigger.event.data.target_mac }}
-        von {{ trigger.event.data.source_ip }}
-        ({{ trigger.event.data.source_mac }})
-        über {{ trigger.event.data.destination_ip }}:{{ trigger.event.data.destination_port }}
-      entity_id: sensor.letztes_wol
-mode: queued
-```
-
-After the first startup, check the actual entity ID. Depending on your
-installation it will normally be `sensor.letztes_wol`.
+If a target MAC is not mapped, `device_name` is `null` and the sensor falls
+back to displaying the MAC address.
 
 ## Sensor
 
-The sensor state is the target MAC address.
+The sensor state is the mapped device name, or the target MAC when unknown.
 
 Attributes:
 
+- `device_name`
 - `target_mac`
 - `source_mac`
 - `source_ip`
@@ -105,24 +93,35 @@ Attributes:
 - `interface`
 - `timestamp`
 
-## Limitations
+## Logbook automation
 
-This first implementation handles the common WOL form:
+```yaml
+alias: WOL im Logbuch protokollieren
+triggers:
+  - trigger: event
+    event_type: wol_packet
+actions:
+  - action: logbook.log
+    data:
+      name: Wake-on-LAN
+      message: >
+        {% set name = trigger.event.data.device_name
+           or trigger.event.data.target_mac %}
+        {{ name }} wurde per WOL geweckt
+        (Quelle {{ trigger.event.data.source_ip }}).
+      entity_id: sensor.letztes_wol
+mode: queued
+```
 
-Ethernet -> IPv4 -> UDP -> port 7/9 -> magic packet
+The target MAC, source IP/MAC and timestamp remain available as event data and
+sensor attributes.
 
-It intentionally does not claim to capture every possible WOL transport,
-IPv6, or non-standard encapsulation.
+## Notes
 
-A WOL packet can only be observed if the packet actually reaches the network
-interface on which the listener is attached. On a switched network this is
-usually fine for broadcast WOL, but VLANs and switch configuration can affect
-what is visible.
+This implementation handles the common Ethernet -> IPv4 -> UDP -> port 7/9
+WOL format. It does not attempt to capture IPv6 or arbitrary encapsulations.
 
-## Security
+A packet must actually reach the interface being monitored. VLANs and switch
+configuration can affect visibility.
 
-The integration uses a raw packet socket. Grant only:
-
-`CAP_NET_RAW`
-
-Avoid `privileged: true` unless you have another reason to require it.
+Only `CAP_NET_RAW` is required; `privileged: true` is not needed.

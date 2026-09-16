@@ -3,24 +3,33 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_INTERFACE, DEFAULT_INTERFACE, DOMAIN, PLATFORMS
+from .const import (
+    CONF_DEVICES,
+    CONF_INTERFACE,
+    DEFAULT_DEVICES,
+    DEFAULT_INTERFACE,
+    DOMAIN,
+    PLATFORMS,
+)
 from .listener import WolListener
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the integration."""
     hass.data.setdefault(DOMAIN, {})
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up a WOL listener config entry."""
     interface = entry.options.get(
         CONF_INTERFACE,
         entry.data.get(CONF_INTERFACE, DEFAULT_INTERFACE),
     )
+    devices = entry.options.get(
+        CONF_DEVICES,
+        entry.data.get(CONF_DEVICES, DEFAULT_DEVICES),
+    )
 
-    listener = WolListener(hass, interface)
+    listener = WolListener(hass, interface, devices)
     await listener.async_start()
 
     hass.data[DOMAIN][entry.entry_id] = listener
@@ -32,7 +41,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a WOL listener config entry."""
     listener = hass.data[DOMAIN].pop(entry.entry_id, None)
     if listener is not None:
         await listener.async_stop()
@@ -41,5 +49,4 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload the config entry."""
     await hass.config_entries.async_reload(entry.entry_id)
