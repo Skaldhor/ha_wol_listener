@@ -22,9 +22,9 @@ services:
 
 ## Installation
 
-Copy `wol_listener` to:
+Copy `ha_wol_listener` to:
 
-`/config/custom_components/wol_listener/`
+`/config/custom_components/ha_wol_listener/`
 
 Restart Home Assistant and add:
 

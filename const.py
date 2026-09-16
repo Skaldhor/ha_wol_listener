@@ -1,4 +1,4 @@
-DOMAIN = "wol_listener"
+DOMAIN = "ha_wol_listener"
 
 CONF_INTERFACE = "interface"
 CONF_DEVICES = "devices"
