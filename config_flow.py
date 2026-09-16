@@ -38,6 +38,10 @@ class WolListenerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             interface = user_input[CONF_INTERFACE].strip() or DEFAULT_INTERFACE
             devices = _parse_devices(user_input[CONF_DEVICES])
+
+            await self.async_set_unique_id(interface)
+            self._abort_if_unique_id_configured()
+
             return self.async_create_entry(
                 title=f"WOL Listener ({interface})",
                 data={

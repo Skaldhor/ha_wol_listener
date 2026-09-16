@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
     CONF_DEVICES,
@@ -12,6 +15,8 @@ from .const import (
     PLATFORMS,
 )
 from .listener import WolListener
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -30,7 +35,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     listener = WolListener(hass, interface, devices)
-    await listener.async_start()
+
+    try:
+        await listener.async_start()
+    except OSError as err:
+        _LOGGER.debug(
+            "Could not start WOL listener on interface %s: %s", interface, err
+        )
+        raise ConfigEntryNotReady(
+            f"Could not open raw socket on interface '{interface}': {err}"
+        ) from err
 
     hass.data[DOMAIN][entry.entry_id] = listener
 
