@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import re
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -8,21 +10,53 @@ from homeassistant.core import callback
 from .const import CONF_DEVICES, CONF_INTERFACE, DEFAULT_DEVICES, DEFAULT_INTERFACE, DOMAIN
 
 
-def _parse_devices(value: str) -> dict[str, str]:
-    """Parse lines of MAC=Name into a normalized mapping."""
+def _normalize_mac(mac: str) -> str | None:
+    """Normalize a MAC address and reject malformed values."""
+    cleaned = mac.strip().upper().replace("-", ":")
+    if not cleaned:
+        return None
+
+    parts = cleaned.split(":")
+    if len(parts) != 6:
+        return None
+
+    if any(len(part) != 2 or not re.fullmatch(r"[0-9A-F]{2}", part) for part in parts):
+        return None
+
+    return ":".join(parts)
+
+
+def _parse_devices(value: str) -> tuple[dict[str, str], list[str]]:
+    """Parse lines of MAC=Name into a normalized mapping.
+
+    Returns a tuple of (devices, invalid_entries).
+    """
     devices: dict[str, str] = {}
+    invalid_entries: list[str] = []
+
     for line in value.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
         if "=" not in line:
+            invalid_entries.append(line)
             continue
+
         mac, name = line.split("=", 1)
-        mac = mac.strip().upper().replace("-", ":")
+        normalized = _normalize_mac(mac)
         name = name.strip()
-        if mac and name:
-            devices[mac] = name
-    return devices
+
+        if not normalized or not name:
+            invalid_entries.append(line)
+            continue
+
+        if normalized in devices:
+            invalid_entries.append(line)
+            continue
+
+        devices[normalized] = name
+
+    return devices, invalid_entries
 
 
 def _devices_to_text(devices: dict[str, str]) -> str:
@@ -37,7 +71,25 @@ class WolListenerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         if user_input is not None:
             interface = user_input[CONF_INTERFACE].strip() or DEFAULT_INTERFACE
-            devices = _parse_devices(user_input[CONF_DEVICES])
+            devices, invalid_entries = _parse_devices(user_input[CONF_DEVICES])
+
+            if invalid_entries:
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required(
+                                CONF_INTERFACE,
+                                default=interface,
+                            ): str,
+                            vol.Optional(
+                                CONF_DEVICES,
+                                default=user_input[CONF_DEVICES],
+                            ): str,
+                        }
+                    ),
+                    errors={"base": "invalid_devices"},
+                )
 
             await self.async_set_unique_id(interface)
             self._abort_if_unique_id_configured()
@@ -81,7 +133,26 @@ class WolListenerOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
         if user_input is not None:
             interface = user_input[CONF_INTERFACE].strip() or DEFAULT_INTERFACE
-            devices = _parse_devices(user_input[CONF_DEVICES])
+            devices, invalid_entries = _parse_devices(user_input[CONF_DEVICES])
+
+            if invalid_entries:
+                return self.async_show_form(
+                    step_id="init",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required(
+                                CONF_INTERFACE,
+                                default=interface,
+                            ): str,
+                            vol.Optional(
+                                CONF_DEVICES,
+                                default=user_input[CONF_DEVICES],
+                            ): str,
+                        }
+                    ),
+                    errors={"base": "invalid_devices"},
+                )
+
             return self.async_create_entry(
                 title="",
                 data={

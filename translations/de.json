@@ -1,5 +1,8 @@
 {
   "config": {
+    "error": {
+      "invalid_devices": "Die Gerätezuordnung enthält ungültige Einträge. Jede Zeile muss im Format MAC=Name sein und die MAC-Adresse muss genau sechs Bytes im Format AA:BB:CC:DD:EE:FF oder AA-BB-CC-DD-EE-FF haben."
+    },
     "step": {
       "user": {
         "title": "Wake-on-LAN Listener",
