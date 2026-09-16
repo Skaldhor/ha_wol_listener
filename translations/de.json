@@ -3,9 +3,10 @@
     "step": {
       "user": {
         "title": "Wake-on-LAN Listener",
-        "description": "Lauscht auf dem angegebenen Linux-Netzwerkinterface nach WOL Magic Packets.",
+        "description": "Lauscht nach WOL Magic Packets. Gerätezuordnung: eine Zeile pro Gerät im Format MAC=Name.",
         "data": {
-          "interface": "Netzwerkinterface"
+          "interface": "Netzwerkinterface",
+          "devices": "Gerätezuordnung"
         }
       }
     }

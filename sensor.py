@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -11,6 +10,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from .const import (
     ATTR_DESTINATION_IP,
     ATTR_DESTINATION_PORT,
+    ATTR_DEVICE_NAME,
     ATTR_INTERFACE,
     ATTR_SOURCE_IP,
     ATTR_SOURCE_MAC,
@@ -28,24 +28,20 @@ async def async_setup_entry(
     async_add_entities,
 ) -> None:
     listener: WolListener = hass.data[DOMAIN][entry.entry_id]
-
     entity = WolLastPacketSensor(listener, entry)
-
     async_add_entities([entity])
 
     @callback
     def _event_listener(event: Event) -> None:
         entity.update_from_event(event.data)
 
-    remove_listener = hass.bus.async_listen(
-        EVENT_WOL_PACKET,
-        _event_listener,
+    entry.async_on_unload(
+        hass.bus.async_listen(EVENT_WOL_PACKET, _event_listener)
     )
-    entry.async_on_unload(remove_listener)
 
 
 class WolLastPacketSensor(SensorEntity):
-    """Sensor containing information about the last WOL packet."""
+    """Sensor for the last detected WOL packet."""
 
     _attr_has_entity_name = True
     _attr_name = "Letztes WOL"
@@ -54,7 +50,6 @@ class WolLastPacketSensor(SensorEntity):
     def __init__(self, listener: WolListener, entry: ConfigEntry) -> None:
         self._listener = listener
         self._attr_unique_id = f"{entry.entry_id}_last_wol"
-
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name="Wake-on-LAN Listener",
@@ -82,9 +77,9 @@ class WolLastPacketSensor(SensorEntity):
 
     @callback
     def update_from_data(self, data: dict[str, Any]) -> None:
-        self._state = data.get(ATTR_TARGET_MAC)
-
+        self._state = data.get(ATTR_DEVICE_NAME) or data.get(ATTR_TARGET_MAC)
         self._attributes = {
+            "device_name": data.get(ATTR_DEVICE_NAME),
             "target_mac": data.get(ATTR_TARGET_MAC),
             "source_mac": data.get(ATTR_SOURCE_MAC),
             "source_ip": data.get(ATTR_SOURCE_IP),
