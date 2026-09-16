@@ -1,8 +1,10 @@
-# Wake-on-LAN Listener – Home Assistant
+# Wake-on-LAN Listener – Home Assistant on Docker
 
 Custom integration that listens for IPv4/UDP Wake-on-LAN magic packets using
 Linux `AF_PACKET`, fires a `wol_packet` event and exposes a sensor for the
 last packet.
+
+This integration is specifically designed for Home Assistant running in Docker. It is not suitable for bare-metal Home Assistant installs or other container runtimes that do not expose the host network and `CAP_NET_RAW` capability.
 
 ## Docker requirement
 
@@ -22,9 +24,9 @@ services:
 
 ## Installation
 
-Copy `wol_listener` to:
+Copy `ha_wol_listener` to:
 
-`/config/custom_components/wol_listener/`
+`/config/custom_components/ha_wol_listener/`
 
 Restart Home Assistant and add:
 
@@ -32,17 +34,13 @@ Settings -> Devices & services -> Add integration -> Wake-on-LAN Listener
 
 ## Configuration
 
-Interface:
-
-```text
-auto
-```
-
-or e.g.:
+Default interface:
 
 ```text
 eth0
 ```
+
+You may also set a different interface name explicitly.
 
 Device mapping uses one line per device:
 

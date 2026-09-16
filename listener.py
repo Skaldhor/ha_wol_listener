@@ -136,7 +136,7 @@ class WolListener:
         self._running = True
         self._task = self.hass.async_create_task(
             self._listen_loop(),
-            name="wol_listener",
+            name="ha_wol_listener",
         )
 
         _LOGGER.info(
