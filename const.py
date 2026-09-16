@@ -3,7 +3,7 @@ DOMAIN = "ha_wol_listener"
 CONF_INTERFACE = "interface"
 CONF_DEVICES = "devices"
 
-DEFAULT_INTERFACE = "auto"
+DEFAULT_INTERFACE = "eth0"
 DEFAULT_DEVICES = {}
 
 EVENT_WOL_PACKET = "wol_packet"

@@ -32,17 +32,13 @@ Settings -> Devices & services -> Add integration -> Wake-on-LAN Listener
 
 ## Configuration
 
-Interface:
-
-```text
-auto
-```
-
-or e.g.:
+Default interface:
 
 ```text
 eth0
 ```
+
+You may also set a different interface name explicitly.
 
 Device mapping uses one line per device:
 
