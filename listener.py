@@ -134,7 +134,7 @@ class WolListener:
 
         self._socket = sock
         self._running = True
-        self._task = self.hass.async_create_task(
+        self._task = self.hass.async_create_background_task(
             self._listen_loop(),
             name="ha_wol_listener",
         )
