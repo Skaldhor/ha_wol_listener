@@ -145,7 +145,7 @@ class WolListener:
             len(self.devices),
         )
 
-    async def async_stop(self) -> None:
+    async def async_stop(self, _event=None) -> None:
         self._running = False
 
         if self._task is not None:
