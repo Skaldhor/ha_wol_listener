@@ -4,6 +4,8 @@ Custom integration that listens for IPv4/UDP Wake-on-LAN magic packets using
 Linux `AF_PACKET`, fires a `wol_packet` event and exposes a sensor for the
 last packet.
 
+> AI-generated code notice: this integration was created with AI assistance. It is intended for learning and experimentation, and should be reviewed carefully before use in production or sensitive environments.
+
 This integration is specifically designed for Home Assistant running in Docker. It is not suitable for bare-metal Home Assistant installs or other container runtimes that do not expose the host network and `CAP_NET_RAW` capability.
 
 ## Docker requirement
